@@ -34,9 +34,14 @@ Backup-Files $myDocs "Visual Studio 2017\Projects"
 Backup-Files $myDocs "Visual Studio 2017\Settings"
 Backup-Files $myDocs "WindowsPowerShell"
 
+# Applications
+$appData = [Environment]::GetFolderPath("ApplicationData")
+$user    = [Environment]::GetFolderPath("User")
+Backup-Files $appData "Code\User" # VS Code Settings
+Backup-Files $user    ".vscode"   # VS Code Extensions
+
 # Bookmarks
-$favorites = ([Environment]::GetFolderPath("Favorites"))
-Backup-Files $favorites
+Backup-Files ([Environment]::GetFolderPath("Favorites")) # IE
 Backup-FirefoxBookmarksHTML
 Backup-GoogleChromeBookmarksJSON
 ```
