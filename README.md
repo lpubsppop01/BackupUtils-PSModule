@@ -21,6 +21,10 @@ This PowerShell module provides cmdlets for backup.
         - Save Chocolatey installed package list to `$(MyDocuments)\ConfigDumps\chocolatey\packages.config`.
     - `Save-NPMGlobalInstalledPackageList`
         - Save npm global installed package list to `$(MyDocuments)\ConfigDumps\npm\ls.txt`.
+    - `Save-TfsLocalChangesAsShelveset`
+        - Shelve TFS local changes on workspaces.
+        - Shelveset naming rule is same as the destination name construction of `Backup-Files`.
+        - Use `tf` command of vs2013-2017.
 
 ## Examples
 ```powershell
@@ -44,6 +48,10 @@ Backup-Files $user    ".vscode"   # VS Code Extensions
 Backup-Files ([Environment]::GetFolderPath("Favorites")) # IE
 Backup-FirefoxBookmarksHTML
 Backup-GoogleChromeBookmarksJSON
+
+# TFS
+$workspaces = (Join-Path ([Environment]::GetFolderPath("UserProfile")) "Source\Workspaces")
+Save-TfsLocalChangesAsShelveset $workspaces
 ```
 
 ## Installation

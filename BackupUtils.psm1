@@ -129,6 +129,32 @@ function Save-NPMGlobalInstalledPackageList() {
     }
 }
 
+$tf_vs2017 = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe"
+$tf_vs2015 = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\TF.exe"
+$tf_vs2013 = "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\TF.exe"
+
+function Get-TfPath($altPath) {
+    if ($altPath -ne $null) {
+        return $altPath
+    } elseif (Test-Path $tf_vs2017) {
+        return $tf_vs2017
+    } elseif (Test-Path $tf_vs2015) {
+        return $tf_vs2015
+    } elseif (Test-Path $tf_vs2013) {
+        return $tf_vs2013
+    }
+}
+
+function Save-TfsLocalChangesAsShelveset($srcPath, $altTfPath=$null) {
+    $shelvesetName = $hostname + $glueChar + (Get-SanitizedFilename $srcPath)
+    &(Get-TfPath $altTfPath) shelve /replace /recursive $shelvesetName $srcDirPath > $null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host $message_Done $srcPath
+    } else {
+        Write-Host $message_Error $srcPath
+    }
+}
+
 Export-ModuleMember -Variable backupDestRootDir
 Export-ModuleMember -Function Backup-Files
 Export-ModuleMember -Function Get-FirefoxProfileDirName
@@ -136,3 +162,4 @@ Export-ModuleMember -Function Backup-FirefoxBookmarksHTML
 Export-ModuleMember -Function Backup-GoogleChromeBookmarksJSON
 Export-ModuleMember -Function Save-ChocolateyInstalledPackageList
 Export-ModuleMember -Function Save-NPMGlobalInstalledPackageList
+Export-ModuleMember -Function Save-TfsLocalChangesAsShelveset
