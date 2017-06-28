@@ -14,15 +14,15 @@ function Get-SanitizedFilename($filename) {
 }
 
 function Copy-FileWithTimestamp($srcPath, $destPath) {
-    $creationTime = (Get-Item $srcPath).CreationTime
-    $lastWriteTime = (Get-Item $srcPath).LastWriteTime
-    Copy-Item $srcPath $destPath
-    (Get-Item $destPath).CreationTime = $creationTime
-    (Get-Item $destPath).LastWriteTime = $lastWriteTime
+    $creationTime = (Get-Item -LiteralPath $srcPath).CreationTime
+    $lastWriteTime = (Get-Item -LiteralPath $srcPath).LastWriteTime
+    Copy-Item -LiteralPath $srcPath $destPath
+    (Get-Item -LiteralPath $destPath).CreationTime = $creationTime
+    (Get-Item -LiteralPath $destPath).LastWriteTime = $lastWriteTime
 }
 
 function Copy-FilesWithTimestamp($srcPath, $destPath) {
-    if ((Get-Item $srcPath).PSIsContainer) {
+    if ((Get-Item -LiteralPath $srcPath).PSIsContainer) {
         robocopy /mir $srcPath $destPath > $null
         if ($LASTEXITCODE -eq 0) {
             Write-Host $message_NoChange $srcPath
@@ -30,8 +30,8 @@ function Copy-FilesWithTimestamp($srcPath, $destPath) {
             Write-Host $message_Done $srcPath
         }
     } else {
-        if (!(Test-Path $destPath) -or
-            ((Get-Item $srcPath).LastWriteTime -gt (Get-Item $destPath).LastWriteTime)) {
+        if (!(Test-Path -LiteralPath $destPath) -or
+            ((Get-Item -LiteralPath $srcPath).LastWriteTime -gt (Get-Item -LiteralPath $destPath).LastWriteTime)) {
             Copy-FileWithTimestamp $srcPath $destPath
             Write-Host $message_Done $srcPath
         } else {
@@ -55,7 +55,7 @@ function Backup-Files($srcBasePath, $srcRelPath=$null) {
         Copy-FilesWithTimestamp $srcPath $destPath
     } else {
         $srcPath = Join-Path $srcBasePath $srcRelPath
-        if (!(Test-Path $srcPath)) {
+        if (!(Test-Path -LiteralPath $srcPath)) {
             Write-Host $message_Error $srcPath
             return
         }
@@ -63,7 +63,7 @@ function Backup-Files($srcBasePath, $srcRelPath=$null) {
         $destBaseDir = Join-Path $backupDestRootDir $destBaseDirName
         $destPath = Join-Path $destBaseDir $srcRelPath
         $destParentDir = Split-Path -Parent $destPath
-        if (!(Test-Path $destParentDir)) {
+        if (!(Test-Path -LiteralPath $destParentDir)) {
             mkdir $destParentDir > $null
         }
         Copy-FilesWithTimestamp $srcPath $destPath
