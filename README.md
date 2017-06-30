@@ -51,7 +51,7 @@ Backup-GoogleChromeBookmarksJSON
 
 # TFS
 $workspaces = (Join-Path ([Environment]::GetFolderPath("UserProfile")) "Source\Workspaces")
-Save-TfsLocalChangesAsShelveset $workspaces
+Save-TfsLocalChangesAsShelveset (Join-Path $workspaces "MyFirstProject")
 ```
 
 ## Installation

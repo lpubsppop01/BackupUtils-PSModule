@@ -145,9 +145,13 @@ function Get-TfPath($altPath) {
     }
 }
 
-function Save-TfsLocalChangesAsShelveset($srcPath, $altTfPath=$null) {
+function Save-TfsLocalChangesAsShelveset($srcPath=$null, $altTfPath=$null) {
     $shelvesetName = $hostname + $glueChar + (Get-SanitizedFilename $srcPath)
-    &(Get-TfPath $altTfPath) shelve /replace /recursive $shelvesetName $srcDirPath > $null
+    if ((&(Get-TfPath $altTfPath) status /recursive $srcPath) -match "-------------------------------------------------------------------------------") {
+        &(Get-TfPath $altTfPath) shelve /replace /recursive /noprompt $shelvesetName $srcPath > $null
+    } else {
+        &(Get-TfPath $altTfPath) shelve /delete /noprompt $shelvesetName > $null
+    }
     if ($LASTEXITCODE -eq 0) {
         Write-Host $message_Done $srcPath
     } else {
