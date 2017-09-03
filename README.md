@@ -34,7 +34,7 @@ $backupDestRootDir = "F:\Backups"
 # Documents
 $myDocs = [Environment]::GetFolderPath("MyDocuments")
 Backup-Files $myDocs "ConfigDumps"
-Backup-Files $myDocs "Visual Studio 2017\Projects"
+Backup-Files $myDocs "Visual Studio 2017\Projects" @("Visual Studio 2017\Projects\PROJECT_TO_IGNORE")
 Backup-Files $myDocs "Visual Studio 2017\Settings"
 Backup-Files $myDocs "WindowsPowerShell"
 

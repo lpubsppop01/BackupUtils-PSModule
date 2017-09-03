@@ -21,10 +21,16 @@ function Copy-FileWithTimestamp($srcPath, $destPath) {
     (Get-Item -LiteralPath $destPath).LastWriteTime = $lastWriteTime
 }
 
-function Copy-FilesWithTimestamp($srcPath, $destPath) {
+function Copy-FilesWithTimestamp($srcPath, $destPath, $srcPathsToIgnore) {
     if ((Get-Item -LiteralPath $srcPath).PSIsContainer) {
-        robocopy /mir $srcPath $destPath > $null
-        if ($LASTEXITCODE -eq 0) {
+        $args = "/MIR `"$srcPath`" `"$destPath`""
+        if ($srcPathsToIgnore -ne $null) {
+            foreach ($path in $srcPathsToIgnore) {
+                $args += " /XD `"$path`""
+            }
+        }
+        $process = Start-Process robocopy -ArgumentList $args -NoNewWindow -PassThru -Wait
+        if ($process.ExitCode -eq 0) {
             Write-Host $message_NoChange $srcPath
         } else {
             Write-Host $message_Done $srcPath
@@ -40,33 +46,47 @@ function Copy-FilesWithTimestamp($srcPath, $destPath) {
     }
 }
 
-function Backup-Files($srcBasePath, $srcRelPath=$null) {
-    if (!(Test-Path $backupDestRootDir)) {
-        Write-Host $message_Error $backupDestRootDir
-        return
-    }
-    if ($srcRelPath -eq $null) {
-        $srcPath = $srcBasePath
-        if (!(Test-Path $srcPath)) {
-            Write-Host $message_Error $srcPath
+function Backup-Files {
+    [CmdletBinding()]
+    Param(
+        [string] $srcBasePath,
+        [string] $srcRelPath = $null,
+        [string[]] $srcRelPathsToIgnore = $null
+    )
+    PROCESS {
+        if (!(Test-Path $backupDestRootDir)) {
+            Write-Host $message_Error $backupDestRootDir
             return
         }
-        $destPath = Join-Path $backupDestRootDir ($hostname + $glueChar + (Get-SanitizedFilename $srcPath))
-        Copy-FilesWithTimestamp $srcPath $destPath
-    } else {
-        $srcPath = Join-Path $srcBasePath $srcRelPath
-        if (!(Test-Path -LiteralPath $srcPath)) {
-            Write-Host $message_Error $srcPath
-            return
+        $srcPathsToIgnore = @()
+        if ($srcRelPathsToIgnore -ne $null) {
+            foreach ($relPath in $srcRelPathsToIgnore) {
+                $srcPathsToIgnore += Join-Path $srcBasePath $relPath
+            }
         }
-        $destBaseDirName = $hostname + $glueChar + (Get-SanitizedFilename $srcBasePath)
-        $destBaseDir = Join-Path $backupDestRootDir $destBaseDirName
-        $destPath = Join-Path $destBaseDir $srcRelPath
-        $destParentDir = Split-Path -Parent $destPath
-        if (!(Test-Path -LiteralPath $destParentDir)) {
-            mkdir $destParentDir > $null
+        if ($srcRelPath -eq $null) {
+            $srcPath = $srcBasePath
+            if (!(Test-Path $srcPath)) {
+                Write-Host $message_Error $srcPath
+                return
+            }
+            $destPath = Join-Path $backupDestRootDir ($hostname + $glueChar + (Get-SanitizedFilename $srcPath))
+            Copy-FilesWithTimestamp $srcPath $destPath $srcPathsToIgnore
+        } else {
+            $srcPath = Join-Path $srcBasePath $srcRelPath
+            if (!(Test-Path -LiteralPath $srcPath)) {
+                Write-Host $message_Error $srcPath
+                return
+            }
+            $destBaseDirName = $hostname + $glueChar + (Get-SanitizedFilename $srcBasePath)
+            $destBaseDir = Join-Path $backupDestRootDir $destBaseDirName
+            $destPath = Join-Path $destBaseDir $srcRelPath
+            $destParentDir = Split-Path -Parent $destPath
+            if (!(Test-Path -LiteralPath $destParentDir)) {
+                mkdir $destParentDir > $null
+            }
+            Copy-FilesWithTimestamp $srcPath $destPath $srcPathsToIgnore
         }
-        Copy-FilesWithTimestamp $srcPath $destPath
     }
 }
 
