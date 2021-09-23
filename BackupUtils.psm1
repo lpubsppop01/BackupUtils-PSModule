@@ -50,7 +50,7 @@ function Backup-Files {
     [CmdletBinding()]
     Param(
         [string] $srcBasePath,
-        [string] $srcRelPath = $null,
+        [string] $srcRelPath = "",
         [string[]] $srcRelPathsToIgnore = $null
     )
     PROCESS {
@@ -64,7 +64,7 @@ function Backup-Files {
                 $srcPathsToIgnore += Join-Path $srcBasePath $relPath
             }
         }
-        if ($srcRelPath -eq $null) {
+        if ($srcRelPath -eq "") {
             $srcPath = $srcBasePath
             if (!(Test-Path $srcPath)) {
                 Write-Host $message_Error $srcPath
